@@ -1,0 +1,33 @@
+version: '2'
+services:
+  httpd:
+    container_name: 'httpd'
+    image: 'httpd'
+    depends_on:
+      - "gatekeeper"
+      - "keycloak"
+    networks:
+      - auth-network
+  gatekeeper:
+    container_name: gatekeeper
+    image: 'keycloak/keycloak-gatekeeper'
+    command: --listen=:3000 --upstream-url=http://httpd:80 --no-redirects=true --discovery-url=http://keycloak:8080/auth/realms/master --client-id=httpd
+    ports:
+      - "3000:3000"
+    depends_on:
+      - "keycloak"
+    networks:
+      - auth-network
+  keycloak:
+    container_name: keycloak
+    image: jboss/keycloak
+    ports:
+      - "8080:8080"
+    environment:
+      KEYCLOAK_USER: admin
+      KEYCLOAK_PASSWORD: admin
+    networks:
+      - auth-network
+networks:
+  auth-network:
+    driver: bridge
